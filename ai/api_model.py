@@ -4,7 +4,7 @@ from datetime import datetime
 import google.generativeai as genai
 
 # 여기에 새로 발급받은 Gemini API 키를 직접 입력하세요.
-GEMINI_API_KEY = "AIzaSyDYqDDyIxV3X7o1uvz0QzYFfCNlR56cUzg"  # 새 API 키로 업데이트했는지 확인!
+GEMINI_API_KEY = ""  # 새 API 키로 업데이트했는지 확인!
 
 genai.configure(api_key=GEMINI_API_KEY)
 model = genai.GenerativeModel('gemini-1.5-flash')  # 모델 이름 업데이트
