@@ -1,0 +1,23 @@
+import joblib
+import numpy as np
+
+categories = ['교통', '식비', '술/유흥', '여행', '의료', '간식', '쇼핑', '주거']
+
+model = joblib.load('model.pkl')
+
+#데이터 입력
+def predict_next_month(input_data):
+    """
+    input_data: List of dicts (3개월치)
+    [
+        {'교통': 12000, '식비': 90000, ..., '주거': 300000},
+        ...
+    ]
+    """
+    x = []
+    for month in input_data:
+        for cat in categories:
+            x.append(month.get(cat, 0))
+    x = np.array(x).reshape(1, -1)
+    y_pred = model.predict(x)[0]
+    return dict(zip(categories, map(int, y_pred)))
