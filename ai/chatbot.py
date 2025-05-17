@@ -251,7 +251,6 @@ def get_data_from_db(user_id, query_params):
         return None
 
 
-# ✅ 챗봇 메시지 처리 API 엔드포인트
 # 프론트엔드에서 사용자 메시지를 POST 요청으로 보냅니다.
 # 예: POST /api/chat, Body: { "userId": 123, "message": "오늘 점심 만원 썼어" }
 @app.route('/api/chat', methods=['POST'])
@@ -377,7 +376,6 @@ def handle_chat_message():
         return jsonify({"response": "챗봇 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.", "success": False}), 500
 
 
-# ✅ 서버 실행
 if __name__ == '__main__':
     print(">>> Flask 서버 시작 시도 중...")
     # debug=True로 설정하면 코드 수정 시 자동 재시작
