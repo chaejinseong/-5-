@@ -13,22 +13,22 @@ const options = {
         url: 'http://localhost:3000'
       }
     ],
-    components: {            // ✅ 여기에 추가
+    components: {
       securitySchemes: {
-        bearerAuth: {        // ✅ swagger에서 사용할 보안 방식 이름
+        bearerAuth: {
           type: 'http',
           scheme: 'bearer',
           bearerFormat: 'JWT'
         }
       }
     },
-    security: [              // ✅ 모든 API 기본 보안 설정
+    security: [
       {
         bearerAuth: []
       }
     ]
   },
-  apis: ['./src/routes/*.js']
+  apis: ['./src/routes/*.js']  // Swagger 주석이 작성된 라우터 경로
 };
 
 const specs = swaggerJSDoc(options);

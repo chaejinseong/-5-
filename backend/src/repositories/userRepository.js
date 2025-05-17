@@ -1,7 +1,7 @@
 const db = require('../config/database');
 
 const findUserByEmail = async (email) => {
-  const query = `SELECT * FROM User WHERE email = ?`;
+  const query = `SELECT * FROM users WHERE email = ?`;
   
   try {
     const [rows] = await db.execute(query, [email]);
@@ -13,7 +13,7 @@ const findUserByEmail = async (email) => {
 };
 
 const findUserById = async (id) => {
-  const query = `SELECT * FROM User WHERE id = ?`;
+  const query = `SELECT * FROM users WHERE id = ?`;
   
   try {
     const [rows] = await db.execute(query, [id]);
@@ -28,7 +28,7 @@ const createUser = async (userData) => {
   const { name, email, password, age, gender, residence } = userData;
   
   const query = `
-    INSERT INTO User (name, email, password, age, gender, residence, created_at, updated_at, status) 
+    INSERT INTO users (name, email, password, age, gender, residence, created_at, updated_at, status) 
     VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW(), 1)
   `;
   
@@ -56,7 +56,7 @@ const updateUser = async (userId, userData) => {
   if (updateFields.length === 0) return;
   
   const query = `
-    UPDATE User 
+    UPDATE users 
     SET ${updateFields.join(', ')}, updated_at = NOW() 
     WHERE id = ?
   `;
@@ -72,7 +72,7 @@ const updateUser = async (userId, userData) => {
 };
 
 const findAdmins = async () => {
-  const query = `SELECT * FROM User WHERE role = 'admin'`;
+  const query = `SELECT * FROM users WHERE role = 'admin'`;
   
   try {
     const [rows] = await db.execute(query);
@@ -84,7 +84,7 @@ const findAdmins = async () => {
 };
 
 const updateUserRole = async (userId, role) => {
-  const query = `UPDATE User SET role = ?, updated_at = NOW() WHERE id = ?`;
+  const query = `UPDATE users SET role = ?, updated_at = NOW() WHERE id = ?`;
   
   try {
     const [result] = await db.execute(query, [role, userId]);
