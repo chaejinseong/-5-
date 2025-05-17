@@ -66,5 +66,59 @@ router.post(
   validate(expenseTempSchema),
   expenseController.addTempExpense
 );
-
+/**
+ * @swagger
+ * /api/expenses/confirm:
+ *   post:
+ *     summary: 오늘 임시 지출 항목들을 확정 저장
+ *     tags: [Expenses]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: 임시 지출이 확정 저장되었습니다.
+ *       401:
+ *         description: 인증 실패
+ */
+router.post(
+  '/confirm',
+  authenticateToken,
+  expenseController.confirmExpenses // ✅ 새로운 컨트롤러 함수
+);
+/**
+ * @swagger
+ * /api/expenses:
+ *   get:
+ *     summary: 확정 지출 항목 조회
+ *     tags: [Expenses]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: year
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         example: 2025
+ *       - in: query
+ *         name: month
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         example: 5
+ *       - in: query
+ *         name: day
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         example: 20
+ *     responses:
+ *       200:
+ *         description: 선택한 날짜의 지출 목록을 반환합니다.
+ */
+router.get(
+  '/',
+  authenticateToken,
+  expenseController.getConfirmedExpenses
+);
 module.exports = router;
