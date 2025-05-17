@@ -1,0 +1,78 @@
+.home-container {
+  padding: 100px 40px 60px;
+  max-width: 1200px;
+  margin: auto;
+  text-align: center;
+}
+
+.home-header h1 {
+  font-size: 2.2rem;
+  color: #1e3a8a;
+  margin-bottom: 10px;
+}
+
+.home-header p {
+  font-size: 1.1rem;
+  color: #4b5563;
+  margin-bottom: 40px;
+}
+
+.feature-cards {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 40px;
+}
+
+.card {
+  background-color: #f1f5f9;
+  padding: 24px;
+  width: 210px;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.card h3 {
+  color: #1e3a8a;
+  margin-bottom: 10px;
+}
+
+.card p {
+  font-size: 0.95rem;
+  color: #374151;
+  margin-bottom: 16px;
+}
+
+.go-button {
+  text-decoration: none;
+  background-color: #1e3a8a;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: bold;
+}
+
+.auth-prompt {
+  margin-top: 40px;
+}
+
+.signup-button,
+.login-button {
+  margin: 8px;
+  padding: 10px 20px;
+  text-decoration: none;
+  font-weight: 600;
+  border-radius: 6px;
+}
+
+.signup-button {
+  background-color: #1e3a8a;
+  color: white;
+}
+
+.login-button {
+  background-color: #f1f5f9;
+  color: #1e3a8a;
+  border: 1px solid #1e3a8a;
+}
