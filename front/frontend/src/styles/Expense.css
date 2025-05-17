@@ -1,0 +1,64 @@
+.expense-container {
+  margin-top: 80px;
+  padding: 20px 40px;
+  width: 100%;
+  max-width: 1400px;
+  box-sizing: border-box;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.tab-buttons {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.tab-buttons button {
+  padding: 10px 20px;
+  font-weight: bold;
+  background: #e5e7eb;
+  border: none;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.tab-buttons .active {
+  background: #1e3a8a;
+  color: white;
+}
+
+.daily-section,
+.fixed-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+}
+
+.calendar-panel {
+  width: 300px;
+  min-width: 300px;
+}
+
+.result-panel {
+  flex: 1;
+  min-width: 300px;
+  background: #f9fafb;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.fixed-date-select {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 200px;
+}
+
+.total-expense {
+  margin-top: 16px;
+  font-size: 18px;
+  font-weight: bold;
+  color: #1e3a8a;
+}
