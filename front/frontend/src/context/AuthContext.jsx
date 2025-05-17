@@ -1,5 +1,5 @@
-// AuthContext.js
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import axios from 'axios';
 
 const AuthContext = createContext();
 
@@ -8,9 +8,22 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('token') || null);
 
   useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await axios.get('/api/users/me', {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        setUser(res.data);
+      } catch (err) {
+        console.warn('사용자 정보를 불러오지 못했습니다.');
+        setUser(null);
+      }
+    };
+
     if (token) {
-      // 추후 사용자 정보 fetch 가능
-      setUser({ email: 'dummy@example.com' });
+      fetchUser();
     } else {
       setUser(null);
     }
@@ -24,6 +37,7 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     localStorage.removeItem('token');
     setToken(null);
+    setUser(null);
   };
 
   return (
