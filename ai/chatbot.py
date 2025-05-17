@@ -1,35 +1,26 @@
+# app_backend.py
+
+from flask import Flask, request, jsonify
 import google.generativeai as genai
 import os
 import json
-# dotenv 라이브러리는 더 이상 필요 없지만, import는 남겨둘 수 있습니다.
-# from dotenv import load_dotenv # .env 파일을 사용하지 않으므로 이 줄은 필요 없습니다.
 import mysql.connector # MySQL 데이터베이스 연동을 위해 필요
+from datetime import date, timedelta # 날짜 처리를 위해 필요
 
-# --- 디버깅용 코드 (필요 없으면 삭제 가능) ---
+# --- 디버깅용 코드 ---
 print(f"스크립트 현재 작업 디렉토리: {os.getcwd()}")
-# load_dotenv() 관련 디버그 라인은 이제 정확하지 않습니다.
-# print(f".env 파일 로드를 시도할 경로: {os.path.join(os.getcwd(), '.env')}")
 try:
     print(f"현재 디렉토리 내용: {os.listdir()}")
 except Exception as e:
     print(f"디렉토리 내용 확인 오류: {e}")
-# print(".env 파일 로드 시도 완료.") # 이 메시지는 더 이상 load_dotenv()와 직접 관련 없음
-# --- 디버깅용 코드 끝 ---
 
-
-# >>>>> WARNING: 보안 취약! API 키 및 DB 정보를 코드에 직접 삽입합니다. <<<<<
-# >>>>> 이 방법은 로컬 개발/테스트 목적으로만 사용해야 합니다. <<<<<
-# >>>>> 코드를 공유하거나 배포할 때는 절대 이렇게 하면 안 됩니다! <<<<<
-# TODO: 해커톤 이후에는 반드시 .env 파일이나 환경 변수 방식으로 변경하세요.
-
-# 환경 변수에서 읽어오는 대신 코드에 직접 값을 할당합니다.
+# API 키 및 MySQL 데이터베이스 접속 정보 (실제 정보로 변경 필요)
 GEMINI_API_KEY = "YOUR_API_KEY" # 여기에 발급받은 API 키를 직접 입력합니다.
-
-# MySQL 데이터베이스 접속 정보 (실제 DB 정보로 변경 필요)
 DB_HOST = "localhost" # 예: localhost, 127.0.0.1, 또는 DB 서버 주소
 DB_USER = "root" # 실제 DB 사용자 이름으로 변경
 DB_PASSWORD = "password" # 실제 DB 비밀번호로 변경
 DB_NAME = "mydatabase" # 실제 DB 이름으로 변경
+
 
 # 필수 API 키 확인 (이제 항상 True일 것입니다)
 if not GEMINI_API_KEY:
@@ -65,9 +56,15 @@ except Exception as e:
     print("="*50 + "\n")
     exit()
 
+# ✅ Flask 앱 생성
+app = Flask(__name__)
+
+# TODO: 프론트엔드와의 CORS 문제 해결을 위해 Flask-Cors 라이브러리 사용 고려
+# from flask_cors import CORS
+# CORS(app)
+
 # MySQL 데이터베이스 연결 함수
 def get_db_connection():
-    # db_config_ok는 이제 항상 True이므로 이 if 문은 필요 없지만 구조 유지를 위해 남겨둡니다.
     if not db_config_ok:
         print(">>> DB 설정 정보 부족으로 연결할 수 없습니다.")
         return None
@@ -78,12 +75,57 @@ def get_db_connection():
             password=DB_PASSWORD,
             database=DB_NAME
         )
-        print(">>> 데이터베이스 연결 성공")
+        # print(">>> 데이터베이스 연결 성공") # 연결 성공 메시지는 너무 자주 출력될 수 있어 주석 처리
         return connection
     except mysql.connector.Error as e:
         print(f">>> 데이터베이스 연결 오류: {e}")
         print(">>> DB 연결 정보를 확인하거나 DB 서버 상태를 점검해주세요.")
         return None
+
+# ✅ DB에서 가계부 카테고리 목록을 로드하는 함수
+def load_categories_from_db():
+    """
+    데이터베이스에서 유효한 가계부 카테고리 목록을 가져옵니다.
+    오류 발생 시 기본 목록을 반환합니다.
+    """
+    default_categories = ['식비', '교통', '생활', '쇼핑', '기타'] # DB 로드 실패 시 사용할 기본 목록
+
+    if not db_config_ok:
+        print(">>> DB 설정 정보 부족으로 카테고리를 로드할 수 없습니다. 기본 목록 사용.")
+        return default_categories
+
+    connection = get_db_connection()
+    if connection:
+        cursor = connection.cursor()
+        try:
+            # TODO: 실제 카테고리 테이블 이름과 컬럼 이름으로 수정하세요.
+            # 예시: categories 테이블에 name 컬럼이 있다고 가정
+            sql = "SELECT name FROM categories"
+            cursor.execute(sql)
+            # 조회 결과를 리스트 형태로 변환
+            categories = [row[0] for row in cursor.fetchall()]
+            print(f">>> DB에서 카테고리 로드 성공: {categories}")
+            return categories if categories else default_categories # DB에 카테고리가 없을 경우 기본 목록 반환
+
+        except mysql.connector.Error as e:
+            print(f">>> 데이터베이스에서 카테고리 로드 오류: {e}. 기본 목록 사용.")
+            return default_categories
+        except Exception as e:
+            print(f">>> 카테고리 로드 중 알 수 없는 오류: {e}. 기본 목록 사용.")
+            return default_categories
+        finally:
+            if 'cursor' in locals() and cursor is not None:
+                cursor.close()
+            if connection is not None:
+                connection.close()
+    else:
+        print(">>> DB 연결 실패로 카테고리를 로드할 수 없습니다. 기본 목록 사용.")
+        return default_categories
+
+# ✅ 애플리케이션 시작 시 카테고리 로드
+# 서버 시작 전에 카테고리 목록을 미리 로드해 둡니다.
+VALID_EXPENSE_CATEGORIES = load_categories_from_db()
+
 
 # TODO: 이 함수 안에 Gemini 파싱 결과를 DB에 저장하는 로직 구현
 def save_transaction_to_db(user_id, parsed_data):
@@ -115,7 +157,6 @@ def save_transaction_to_db(user_id, parsed_data):
             # 예시: 지출 기록일 경우 expenses 테이블에 삽입 (스키마에 맞춰 수정 필요)
             if intent == '지출기록' and amount is not None:
                  # 날짜 파싱 로직 (간단 예시)
-                 from datetime import date, timedelta
                  spent_date = date.today()
                  if date_str == '어제':
                      spent_date = date.today() - timedelta(days=1)
@@ -139,6 +180,7 @@ def save_transaction_to_db(user_id, parsed_data):
                  print(">>> DB 저장 시도: 파싱된 데이터가 저장 가능한 형식이 아님")
                  return False # 저장할 데이터가 아님
 
+            # --- TODO: 실제 DB 저장 로직 구현 끝 ---
 
         except mysql.connector.Error as e:
             # connection.rollback() # 오류 발생 시 롤백
@@ -158,44 +200,95 @@ def save_transaction_to_db(user_id, parsed_data):
         print(">>> DB 연결 실패로 저장할 수 없습니다.")
         return False
 
+# TODO: DB에서 데이터를 조회하는 함수 구현 (예시)
+def get_data_from_db(user_id, query_params):
+    """
+    DB에서 가계부 데이터를 조회하는 함수 (예시)
 
-print("\n>>> 터미널 챗봇이 시작되었습니다. 종료하려면 'exit' 또는 'quit'를 입력하세요.")
+    Args:
+        user_id (int): 데이터를 조회할 사용자 ID
+        query_params (dict): 조회 조건 (예: {"period": "이번 달", "category": "식비"})
 
-# 터미널에서 사용자 입력을 받고 응답하는 루프
-while True:
+    Returns:
+        list: 조회된 데이터 목록 또는 None
+    """
+    if not db_config_ok:
+        print(">>> DB 설정 정보 부족으로 조회할 수 없습니다.")
+        return None
+
+    connection = get_db_connection()
+    if connection:
+        cursor = connection.cursor(dictionary=True) # 결과를 딕셔너리 형태로 받기 위해 dictionary=True 설정
+        try:
+            print(f">>> DB 조회 시도 (예시): 사용자 {user_id}, 조건: {query_params}")
+
+            # --- TODO: 여기에 실제 DB 조회 로직 구현 ---
+            # query_params를 바탕으로 SQL SELECT 쿼리 구성
+            # 예시: SELECT * FROM expenses WHERE user_id = %s AND ...
+            # sql = "SELECT * FROM expenses WHERE user_id = %s LIMIT 10" # 간단 예시
+            # cursor.execute(sql, (user_id,))
+            # results = cursor.fetchall()
+
+            results = [{"example_data": "조회 기능 미구현"}] # 미구현 예시 결과
+            print(f">>> DB 조회 결과 (예시): {results}")
+            return results
+
+            # --- TODO: 실제 DB 조회 로직 구현 끝 ---
+
+        except mysql.connector.Error as e:
+            print(f">>> 데이터베이스 조회 오류: {e}")
+            return None
+        except Exception as e:
+             print(f">>> DB 조회 로직 실행 중 오류: {e}")
+             return None
+        finally:
+            if 'cursor' in locals() and cursor is not None:
+                cursor.close()
+            if connection is not None:
+                connection.close()
+    else:
+        print(">>> DB 연결 실패로 조회할 수 없습니다.")
+        return None
+
+
+# ✅ 챗봇 메시지 처리 API 엔드포인트
+# 프론트엔드에서 사용자 메시지를 POST 요청으로 보냅니다.
+# 예: POST /api/chat, Body: { "userId": 123, "message": "오늘 점심 만원 썼어" }
+@app.route('/api/chat', methods=['POST'])
+def handle_chat_message():
+    # 요청 본문에서 JSON 데이터 가져오기
+    request_data = request.get_json()
+    user_id = request_data.get('userId') # TODO: 실제 사용자 인증 로직에서 user_id 가져오도록 수정
+    user_message = request_data.get('message')
+
+    if not user_id or not user_message:
+        # 필수 데이터 누락 시 오류 응답
+        return jsonify({"response": "잘못된 요청입니다. userId와 message를 포함해주세요.", "success": False}), 400
+
+    print(f"\n--- 사용자 {user_id} 메시지 수신: {user_message} ---")
+
     try:
-        # 사용자 입력 받기
-        user_input = input("나: ") # '나: ' 프롬프트를 표시하고 입력을 기다립니다.
-
-        # 종료 명령어 확인
-        if user_input.lower() in ['exit', 'quit', '종료']:
-            print(">>> 챗봇을 종료합니다.")
-            break # 루프를 종료합니다.
-
-        if not user_input:
-            continue # 입력이 비어있으면 다시 입력을 받습니다.
-
-        print("챗봇: 생각 중...") # 응답 생성 중임을 알립니다.
-
         # --- 1. Gemini 모델에게 사용자 입력 파싱 요청 ---
         # 가계부 챗봇으로 사용하려면 여기에 가계부 데이터 파싱 프롬프트를 넣어야 합니다.
-        # 이전 답변에서 사용했던 파싱 프롬프트 예시를 참고하여 구성하세요.
+        # DB에서 로드한 카테고리 목록을 프롬프트에 동적으로 추가합니다.
+        category_list_str = ", ".join(VALID_EXPENSE_CATEGORIES) # 카테고리 목록을 문자열로 변환
+
         parsing_prompt = f"""
         다음 사용자 문장을 분석하여 가계부 관련 의도와 데이터를 추출해줘. 응답은 반드시 JSON 형식으로 해줘.
         의도는 다음 중 하나야: "지출기록", "수입기록", "잔액조회", "지출요약", "고정지출조회", "비교분석요청", "기타질문", "알수없음".
         각 의도별 추가 데이터 필드는 다음과 같아:
-        - 지출기록: {{ "intent": "지출기록", "amount": 금액(숫자), "category": 항목(식비, 교통, 생활, 쇼핑, 기타 중 하나), "memo": 메모(문자열, 선택), "date": 날짜(YYYY-MM-DD 형식 또는 '오늘', '어제', 선택) }}
+        - 지출기록: {{ "intent": "지출기록", "amount": 금액(숫자), "category": 항목({category_list_str} 중 하나), "memo": 메모(문자열, 선택), "date": 날짜(YYYY-MM-DD 형식 또는 '오늘', '어제', 선택) }}
         - 수입기록: {{ "intent": "수입기록", "amount": 금액(숫자), "date": 날짜(YYYY-MM-DD 형식 또는 '오늘', '이번 달', 선택) }}
         - 지출요약: {{ "intent": "지출요약", "period": "오늘", "이번 주", "이번 달", "YYYY-MM", "전체" 등 }}
-        - 비교분석요청: {{ "intent": "비교분석요청", "category": "식비", "교통" 등 (선택), "filter": {{ "gender": "male/female", "age_group": "20대" 등 }} (선택) }}
+        - 비교분석요청: {{ "intent": "비교분석요청", "category": {category_list_str} 중 하나 (선택), "filter": {{ "gender": "male/female", "age_group": "20대" 등 }} (선택) }}
         - 기타질문: {{ "intent": "기타질문", "query": 원문 질문 }}
         - 잔액조회, 고정지출조회, 알수없음: 추가 데이터 필드 없음.
 
         만약 의도를 명확히 파악하기 어렵다면 "알수없음"으로 응답해줘.
-        카테고리는 주어진 목록 외에는 "기타"로 분류해줘.
+        카테고리는 주어진 목록 외에는 "{VALID_EXPENSE_CATEGORIES[-1]}"으로 분류해줘. # 목록의 마지막 카테고리를 기본값으로 사용
         날짜가 명시되지 않으면 '오늘'로 간주해줘. 금액은 반드시 숫자로만 추출해줘.
 
-        사용자 입력: "{user_input}"
+        사용자 입력: "{user_message}"
         """
 
         gemini_response = model.generate_content(parsing_prompt)
@@ -219,20 +312,20 @@ while True:
             print(f">>> JSON 파싱 오류: {e}")
             print(">>> Gemini 응답이 올바른 JSON 형식이 아닙니다. 프롬프트를 조정해보세요.")
             # 파싱 실패 시 기타 질문으로 처리하거나 오류 메시지 반환
-            parsed_data = {"intent": "기타질문", "query": user_input}
+            parsed_data = {"intent": "기타질문", "query": user_message}
         except Exception as e:
              print(f">>> 파싱된 데이터 처리 중 오류: {e}")
-             parsed_data = {"intent": "기타질문", "query": user_input}
+             parsed_data = {"intent": "기타질문", "query": user_message}
 
 
-        # --- 2. 파싱된 의도에 따라 DB 저장 또는 조회/분석 로직 수행 ---
+        # --- 2. 파싱된 의도에 따라 DB 저장 또는 조회/분석 로직 수행 및 응답 생성 ---
         intent = parsed_data.get("intent", "알수없음")
-        user_id = 1 # TODO: 실제 사용자 인증 로직 구현 후 사용자 ID 가져오기
 
-        chatbot_final_response = "요청을 처리했습니다." # 기본 응답
+        # 챗봇 최종 응답 메시지
+        chatbot_final_response = "요청을 처리했습니다."
 
         if intent in ["지출기록", "수입기록"]:
-             # DB 저장 시도 (save_transaction_to_db 함수 안에서 처리)
+             # DB 저장 시도 (save_transaction_to_db 함수 호출)
              # save_transaction_to_db 함수는 현재 예시 로직만 포함하고 있습니다.
              if save_transaction_to_db(user_id, parsed_data):
                  # 저장 성공 시 사용자에게 보여줄 메시지 생성 (parsed_data 활용)
@@ -253,14 +346,16 @@ while True:
 
         elif intent in ["잔액조회", "지출요약", "고정지출조회", "비교분석요청"]:
              # TODO: DB에서 데이터 조회/분석 후 응답 생성 로직 구현
+             # get_data_from_db 함수 호출 예시:
+             # query_results = get_data_from_db(user_id, parsed_data)
              # 필요한 경우 조회된 데이터를 Gemini에게 다시 보내 응답 문장 생성 요청 가능
              print(f">>> '{intent}' 의도 파악. 조회/분석 기능 미구현.")
              chatbot_final_response = f"'{intent}' 의도를 파악했습니다. (조회/분석 기능 미구현)"
 
         elif intent == "기타질문":
              # TODO: Gemini에게 일반적인 질문에 대한 답변 요청 로직 구현
-             # user_input 또는 parsed_data.get('query')를 사용하여 질문
-             general_question = parsed_data.get('query', user_input)
+             # user_message 또는 parsed_data.get('query')를 사용하여 질문
+             general_question = parsed_data.get('query', user_message)
              print(f">>> 기타 질문 처리: {general_question}")
              # 예시: general_response = model.generate_content(general_question)
              # chatbot_final_response = general_response.text.strip()
@@ -268,23 +363,24 @@ while True:
 
 
         else: # 알수없음 또는 기타 파싱 오류
-             print(f">>> 알수없음 의도 파악. 원문: {user_input}")
+             print(f">>> 알수없음 의도 파악. 원문: {user_message}")
              chatbot_final_response = "죄송해요. 어떤 것을 도와드릴까요? (예: '오늘 점심 만원 썼어', '이번 달 식비 알려줘')"
 
 
-        # --- 3. 최종 응답 출력 ---
-        print(f"챗봇: {chatbot_final_response}")
-
+        # --- 3. 최종 응답을 JSON 형태로 프론트엔드에 반환 ---
+        # 챗봇의 응답 메시지를 JSON 응답의 'response' 필드에 담아 보냅니다.
+        return jsonify({"response": chatbot_final_response, "success": True}), 200
 
     except Exception as e:
-        # Gemini API 호출 또는 응답 처리 중 오류 발생 시
-        print(f">>> 오류 발생: {e}")
-        print(">>> 메시지 처리 중 오류가 발생했습니다. 다시 시도해주세요.")
-    except EOFError:
-        # Ctrl+D 등으로 입력이 종료될 경우
-        print("\n>>> 입력 종료. 챗봇을 종료합니다.")
-        break
-    except KeyboardInterrupt:
-        # Ctrl+C 등으로 강제 종료 시
-        print("\n>>> 강제 종료. 챗봇을 종료합니다.")
-        break
+        # 전체 처리 과정 중 예상치 못한 오류 발생 시
+        print(f">>> 전체 처리 과정 중 오류 발생: {e}")
+        return jsonify({"response": "챗봇 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.", "success": False}), 500
+
+
+# ✅ 서버 실행
+if __name__ == '__main__':
+    print(">>> Flask 서버 시작 시도 중...")
+    # debug=True로 설정하면 코드 수정 시 자동 재시작
+    # 실제 배포 시에는 debug=False로 설정해야 합니다.
+    # host='0.0.0.0'으로 설정하면 외부 접속 허용 (개발 시 주의)
+    app.run(debug=True, port=5000) # 포트 번호는 필요에 따라 변경 가능
