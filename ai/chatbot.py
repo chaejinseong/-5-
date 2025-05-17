@@ -23,7 +23,7 @@ except Exception as e:
 # TODO: 해커톤 이후에는 반드시 .env 파일이나 환경 변수 방식으로 변경하세요.
 
 # 환경 변수에서 읽어오는 대신 코드에 직접 값을 할당합니다.
-GEMINI_API_KEY = "AIzaSyDYqDDyIxV3X7o1uvz0QzYFfCNlR56cUzg" # 여기에 발급받은 API 키를 직접 입력합니다.
+GEMINI_API_KEY = "YOUR_API_KEY" # 여기에 발급받은 API 키를 직접 입력합니다.
 
 # MySQL 데이터베이스 접속 정보 (실제 DB 정보로 변경 필요)
 DB_HOST = "localhost" # 예: localhost, 127.0.0.1, 또는 DB 서버 주소
