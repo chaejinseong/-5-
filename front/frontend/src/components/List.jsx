@@ -1,4 +1,3 @@
-// List.jsx
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
@@ -13,13 +12,24 @@ const List = () => {
   }, []);
 
   const fetchPosts = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('로그인이 필요합니다.');
+      navigate('/login');
+      return;
+    }
+
     try {
-      const res = await fetch('http://localhost:5000/api/posts');
-      method = "POST";
-      if (!res.ok) throw new Error('서버 오류로 데이터를 불러올 수 없습니다.');
+      const res = await fetch('/api/posts', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) throw new Error('게시글을 불러오는 데 실패했습니다.');
+
       const data = await res.json();
       setPosts(data);
-      
     } catch (err) {
       alert(err.message);
     }
@@ -29,14 +39,23 @@ const List = () => {
     const confirmed = window.confirm('정말로 이 글을 삭제하시겠습니까?');
     if (!confirmed) return;
 
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('로그인이 필요합니다.');
+      return;
+    }
+
     try {
       const res = await fetch(`/api/posts/${id}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       if (res.ok) {
         alert('삭제되었습니다.');
-        fetchPosts();
+        fetchPosts(); // 목록 다시 불러오기
       } else {
         const result = await res.json();
         alert(result.message || '삭제 실패');
@@ -60,11 +79,20 @@ const List = () => {
                 <a href={`/view/${post.id}`}>{post.title}</a>
               </div>
               <div className="post-author">작성자 ID: {post.user_id}</div>
-              <div className="post-meta">작성일: {new Date(post.created_at).toLocaleString()}</div>
-              <div className="post-content">
-                {post.content.length > 50 ? post.content.slice(0, 50) + '...' : post.content}
+              <div className="post-meta">
+                작성일: {new Date(post.created_at).toLocaleString()}
               </div>
-              <button className="delete-btn" onClick={() => deletePost(post.id)}>삭제</button>
+              <div className="post-content">
+                {post.content.length > 50
+                  ? post.content.slice(0, 50) + '...'
+                  : post.content}
+              </div>
+              <button
+                className="delete-btn"
+                onClick={() => deletePost(post.id)}
+              >
+                삭제
+              </button>
             </div>
           ))}
         </div>

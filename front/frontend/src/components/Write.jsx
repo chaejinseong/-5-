@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import '../styles/Board.css'; // 기존 CSS와 통합된 Board.css 사용
+import '../styles/Board.css';
 
 const Write = () => {
   const navigate = useNavigate();
@@ -14,32 +14,42 @@ const Write = () => {
     setForm({ ...form, [e.target.id]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const { title, content, password } = form;
     if (!title.trim() || !content.trim() || !password.trim()) {
-      alert('모든 필드를 입력해주세요.');
+      alert('모든 항목을 입력해주세요.');
       return;
     }
 
     const token = localStorage.getItem('token');
+    if (!token) {
+      alert('로그인이 필요합니다.');
+      navigate('/login');
+      return;
+    }
 
-    await fetch('/api/posts', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify({
-        title,
-        content,
-        password
-      })
-    });
+    try {
+      const res = await fetch('/api/posts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ title, content, password }),
+      });
 
-    alert('글이 등록되었습니다.');
-    navigate('/list');
+      if (!res.ok) {
+        const result = await res.json();
+        throw new Error(result.message || '글 등록 실패');
+      }
+
+      alert('글이 등록되었습니다.');
+      navigate('/list');
+    } catch (err) {
+      alert(`오류: ${err.message}`);
+    }
   };
 
   return (
@@ -63,7 +73,7 @@ const Write = () => {
           required
         />
 
-        <label htmlFor="password">삭제 비밀번호</label>
+        <label htmlFor="password">삭제용 비밀번호</label>
         <input
           type="password"
           id="password"
