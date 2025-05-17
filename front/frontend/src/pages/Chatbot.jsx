@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import '../styles/Chatbot.css';
 
@@ -10,10 +10,33 @@ const Chatbot = () => {
     { sender: 'bot', text: '자전거나 대중교통을 이용해보세요. 환승 할인도 챙기면 좋아요.' }
   ]);
   const [input, setInput] = useState('');
+  const [userId, setUserId] = useState(null);
 
   const appendMessage = (text, sender) => {
     setMessages((prev) => [...prev, { sender, text }]);
   };
+
+  const fetchUserId = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    try {
+      const res = await fetch('/api/users/me', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      if (!res.ok) throw new Error('인증 실패');
+      const user = await res.json();
+      setUserId(user.id);
+    } catch (err) {
+      console.error('사용자 정보 조회 실패:', err.message);
+    }
+  };
+
+  useEffect(() => {
+    fetchUserId();
+  }, []);
 
   const sendMessage = async () => {
     const text = input.trim();
@@ -23,10 +46,13 @@ const Chatbot = () => {
     setInput('');
 
     try {
-      const response = await fetch('http://localhost:5000/api/chat', {
+      const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text })
+        body: JSON.stringify({
+          message: text,
+          user_id: userId
+        })
       });
       const data = await response.json();
       appendMessage(data.reply || '응답이 없습니다.', 'bot');
@@ -35,7 +61,7 @@ const Chatbot = () => {
     }
   };
 
-  const handleKeyPress = (e) => {
+  const handleKeyDown = (e) => {
     if (e.key === 'Enter') sendMessage();
   };
 
@@ -54,7 +80,7 @@ const Chatbot = () => {
             placeholder="챗봇에게 질문해보세요..."
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyPress={handleKeyPress}
+            onKeyDown={handleKeyDown}  // ✅ 수정
           />
           <button onClick={sendMessage}>전송</button>
         </div>
