@@ -139,7 +139,6 @@ def save_transaction_to_db(user_id, parsed_data):
                  print(">>> DB 저장 시도: 파싱된 데이터가 저장 가능한 형식이 아님")
                  return False # 저장할 데이터가 아님
 
-            # --- TODO: 실제 DB 저장 로직 구현 끝 ---
 
         except mysql.connector.Error as e:
             # connection.rollback() # 오류 발생 시 롤백
