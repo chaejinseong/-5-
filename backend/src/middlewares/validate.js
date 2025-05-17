@@ -1,4 +1,3 @@
-// middlewares/validate.js
 module.exports = (schema) => {
     return (req, res, next) => {
       const { error } = schema.validate(req.body);
