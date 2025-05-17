@@ -6,7 +6,9 @@ import Home from './pages/Home';
 import Expense from './pages/Expense';
 import Compare from './pages/Compare';
 import Chatbot from './pages/Chatbot';
-import Community from './pages/Community';
+import View from './components/View';
+import List from './components/List';
+import Write from './components/Write';
 import { prerenderToNodeStream } from 'react-dom/static';
 import SignUp from './pages/SignUp';
 import Login from './pages/Login';
@@ -26,7 +28,9 @@ function App() {
             <Route path="/expense" element={<Expense />} />
             <Route path="/compare" element={<Compare />} />
             <Route path="/chatbot" element={<Chatbot />} />
-            <Route path="/community" element={<Community />} />
+            <Route path="/community/view" element={<View />} />
+            <Route path="/community/list" element={<List />} />
+            <Route path="/community/write" element={<Write />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/login" element={<Login />} />
           
