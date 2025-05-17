@@ -9,9 +9,9 @@ import Chatbot from './pages/Chatbot';
 import View from './components/View';
 import List from './components/List';
 import Write from './components/Write';
-import { prerenderToNodeStream } from 'react-dom/static';
 import SignUp from './pages/SignUp';
 import Login from './pages/Login';
+import MyInfo from './pages/MyInfo';
 
 import { AuthProvider } from './context/AuthContext'; // 정확한 경로 확인
 
@@ -33,7 +33,7 @@ function App() {
             <Route path="/community/write" element={<Write />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/login" element={<Login />} />
-          
+            <Route path='/myinfo' element={<MyInfo />} />
           </Routes>
         </div>
       </Router>

@@ -28,12 +28,6 @@ const Home = () => {
           <p>나만의 소비 꿀팁을 공유해보세요.</p>
         </div>
       </div>
-
-      <div className="auth-prompt">
-        <p>아직 회원이 아니신가요?</p>
-        <Link to="/signup" className="signup-button">회원가입</Link>
-        <Link to="/login" className="login-button">로그인</Link>
-      </div>
     </div>
   );
 };

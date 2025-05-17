@@ -10,6 +10,16 @@ const Expense = () => {
   const [fixedExpenses, setFixedExpenses] = useState([]);
   const [fixedDate, setFixedDate] = useState({ year: '', month: '' });
 
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({
+    title: '',
+    amount: '',
+    category: '식비',
+    payment_method: '카드',
+    is_fixed: false,
+    memo: ''
+  });
+
   const token = localStorage.getItem('token');
 
   const years = ['2023', '2024', '2025'];
@@ -55,6 +65,45 @@ const Expense = () => {
     }
   };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const date = selectedDate;
+
+    const payload = {
+      ...form,
+      amount: Number(form.amount),
+      year: date.getFullYear(),
+      month: date.getMonth() + 1,
+      day: date.getDate()
+    };
+
+    try {
+      const res = await fetch('/api/expenses', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) throw new Error('지출 등록 실패');
+      alert('지출이 등록되었습니다.');
+      setForm({
+        title: '',
+        amount: '',
+        category: '식비',
+        payment_method: '카드',
+        is_fixed: false,
+        memo: ''
+      });
+      setShowForm(false);
+      fetchDailyExpenses(); // 목록 갱신
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
   useEffect(() => {
     if (activeTab === 'daily') {
       fetchDailyExpenses();
@@ -72,8 +121,8 @@ const Expense = () => {
   return (
     <div className="expense-container">
       <div className="tab-buttons">
-        <button className={activeTab === 'daily' ? 'active' : ''} onClick={() => setActiveTab('daily')}>일별</button>
-        <button className={activeTab === 'fixed' ? 'active' : ''} onClick={() => setActiveTab('fixed')}>고정</button>
+        <button className={activeTab === 'daily' ? 'active' : ''} onClick={() => setActiveTab('daily')}>일별 지출</button>
+        <button className={activeTab === 'fixed' ? 'active' : ''} onClick={() => setActiveTab('fixed')}>월별 고정 지출</button>
       </div>
 
       {activeTab === 'daily' && (
@@ -95,7 +144,45 @@ const Expense = () => {
             <div className="total-expense">
               총 지출: <strong>{totalDaily.toLocaleString()}원</strong>
             </div>
+            <button onClick={() => setShowForm(true)}>+ 지출 등록</button>
           </div>
+
+          {showForm && (
+            <form className="expense-form" onSubmit={handleSubmit}>
+              <input type="text" placeholder="항목명" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required />
+              <input type="number" placeholder="금액" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} required />
+
+              <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
+                <option value="식비">식비</option>
+                <option value="교통">교통</option>
+                <option value="생활">생활</option>
+                <option value="쇼핑">쇼핑</option>
+                <option value="기타">기타</option>
+              </select>
+
+              <select value={form.payment_method} onChange={(e) => setForm({ ...form, payment_method: e.target.value })}>
+                <option value="카드">카드</option>
+                <option value="현금">현금</option>
+                <option value="계좌이체">계좌이체</option>
+              </select>
+
+              <textarea placeholder="메모" value={form.memo} onChange={(e) => setForm({ ...form, memo: e.target.value })} />
+
+              <label>
+                <input
+                  type="checkbox"
+                  checked={form.is_fixed}
+                  onChange={(e) => setForm({ ...form, is_fixed: e.target.checked })}
+                />
+                고정 지출 여부
+              </label>
+
+              <div style={{ marginTop: '10px' }}>
+                <button type="submit">지출 등록</button>
+                <button type="button" onClick={() => setShowForm(false)}>취소</button>
+              </div>
+            </form>
+          )}
         </div>
       )}
 

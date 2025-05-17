@@ -1,0 +1,37 @@
+.container {
+  max-width: 600px;
+  margin: 40px auto;
+  padding: 30px;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+  margin-bottom: 20px;
+  color: #2c3e50;
+}
+
+.info-item {
+  margin-bottom: 15px;
+  font-size: 18px;
+}
+
+.info-label {
+  font-weight: bold;
+  margin-right: 10px;
+  display: inline-block;
+  width: 80px;
+}
+
+.loading,
+.error {
+  text-align: center;
+  font-size: 18px;
+  color: #888;
+  padding: 20px 0;
+}
+
+.error {
+  color: #e74c3c;
+}
