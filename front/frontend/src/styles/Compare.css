@@ -1,0 +1,64 @@
+/* Compare.css */
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #f4f6f9;
+}
+
+.container {
+  display: flex;
+  height: calc(100vh - 70px); /* Navbar 높이 제외 */
+}
+
+.sidebar {
+  width: 260px;
+  padding: 20px;
+  background-color: #ecf0f1;
+}
+
+.main {
+  flex: 1;
+  padding: 20px;
+}
+
+.controls {
+  margin-bottom: 20px;
+}
+
+.controls label {
+  display: block;
+  margin-bottom: 4px;
+  font-weight: bold;
+}
+
+.controls select,
+.controls button {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.controls button {
+  background-color: #2c3e50;
+  color: white;
+  border: none;
+  transition: background-color 0.3s, color 0.3s;
+  cursor: pointer;
+}
+
+.controls button:hover {
+  background-color: white;
+  color: #2c3e50;
+  border: 1px solid #2c3e50;
+}
+
+.sidebar p {
+  font-size: 14px;
+  color: #333;
+  margin-top: 10px;
+}

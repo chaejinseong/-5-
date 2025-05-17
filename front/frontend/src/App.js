@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Expense from './pages/Expense';
+import Compare from './pages/Compare';
 import Community from './pages/Community';
 import { prerenderToNodeStream } from 'react-dom/static';
 import SignUp from './pages/SignUp';
@@ -22,6 +23,7 @@ function App() {
           <Routes>
             <Route path='/' element={<Home />} />
             <Route path="/expense" element={<Expense />} />
+            <Route path="/compare" element={<Compare />} />
             <Route path="/community" element={<Community />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/login" element={<Login />} />
