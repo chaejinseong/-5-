@@ -1,7 +1,7 @@
-const db = require('../config/database');
+const db = require('../config/db');
 
 const findUserByEmail = async (email) => {
-  const query = `SELECT * FROM users WHERE email = ?`;
+  const query = `SELECT * FROM users WHERE email = ?`;
   
   try {
     const [rows] = await db.execute(query, [email]);
@@ -25,16 +25,21 @@ const findUserById = async (id) => {
 };
 
 const createUser = async (userData) => {
-  const { name, email, password, age, gender, residence } = userData;
-  
+  const { name, email, password, age, gender, age_group } = userData;
+
   const query = `
-    INSERT INTO users (name, email, password, age, gender, residence, created_at, updated_at, status) 
-    VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW(), 1)
+    INSERT INTO users (name, email, password, age, gender, age_group, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())
   `;
-  
+
   try {
     const [result] = await db.execute(query, [
-      name, email, password, age, gender, residence
+      name ?? null,
+      email ?? null,
+      password ?? null,
+      age ?? null,
+      gender ?? null,
+      age_group ?? null
     ]);
     return result.insertId;
   } catch (error) {

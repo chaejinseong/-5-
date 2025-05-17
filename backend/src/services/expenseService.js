@@ -1,8 +1,7 @@
-// services/expenseService.js
 const expenseRepository = require('../repositories/expenseRepository');
 
-// 오늘의 임시 지출 항목 저장
-const saveTempExpense = async (userId, expenseData) => {
+// 지출 항목 저장 (바로 확정 저장)
+const saveExpense = async (userId, expenseData) => {
   const {
     category,
     title,
@@ -10,10 +9,12 @@ const saveTempExpense = async (userId, expenseData) => {
     payment_method,
     is_fixed,
     memo,
-    spent_at
+    year,
+    month,
+    day
   } = expenseData;
 
-  await expenseRepository.insertTempExpense({
+  await expenseRepository.insertExpense({
     user_id: userId,
     category,
     title,
@@ -21,31 +22,18 @@ const saveTempExpense = async (userId, expenseData) => {
     payment_method,
     is_fixed,
     memo,
-    spent_at
+    year,
+    month,
+    day
   });
 };
-const confirmExpenses = async (userId) => {
-  // 1. 임시 지출 목록 가져오기
-  const tempExpenses = await expenseRepository.getTempExpensesByUser(userId);
 
-  if (!tempExpenses.length) return 0; // 저장할 항목이 없을 경우
-
-  // 2. 확정 테이블에 저장
-  await expenseRepository.saveConfirmedExpenses(tempExpenses);
-
-  // 3. 임시 테이블에서 삭제
-  await expenseRepository.deleteTempExpensesByUser(userId);
-
-  // 4. 확정된 건수 반환
-  return tempExpenses.length;
+// 특정 날짜의 지출 항목 조회
+const getExpensesByDate = async (userId, year, month, day) => {
+  return await expenseRepository.getExpensesByDate(userId, year, month, day);
 };
-const getConfirmedExpenses = async (userId, year, month, day) => {
-  return await expenseRepository.getConfirmedExpenses(userId, year, month, day);
-};
-
 
 module.exports = {
-  saveTempExpense,
-  confirmExpenses,
-  getConfirmedExpenses
+  saveExpense,
+  getExpensesByDate
 };

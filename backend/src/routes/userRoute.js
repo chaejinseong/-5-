@@ -93,6 +93,8 @@ router.post('/login', userController.login);
  *       401:
  *         description: 토큰이 없거나 유효하지 않음
  */
-router.get('/me', authMiddleware.authMiddlewareToken, userController.me);
-
-module.exports = router;
+router.get('/me', authMiddleware.authenticateToken, userController.me);
+console.log('typeof userController.me:', typeof userController.me);
+console.log('userController.me →', typeof userController.me);
+console.log('authMiddleware.authenticateToken →', typeof authMiddleware.authenticateToken);
+module.exports = router; 

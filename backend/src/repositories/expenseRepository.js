@@ -1,7 +1,9 @@
-// repositories/expenseRepository.js
-const db = require('../config/db'); // DB 커넥션 (예: mysql2/promise 기반)
+const db = require('../config/db');
 
-const insertTempExpense = async (expense) => {
+// ✅ 지출 항목 저장
+const insertExpense = async (expense) => {
+  console.log('💬 insertExpense 요청 받은 값:', expense);
+
   const {
     user_id,
     category,
@@ -10,15 +12,18 @@ const insertTempExpense = async (expense) => {
     payment_method,
     is_fixed,
     memo,
-    spent_at
+    year,
+    month,
+    day
   } = expense;
 
   const sql = `
-    INSERT INTO expenses_temp (
+    INSERT INTO expenses (
       user_id, category, title, amount,
-      payment_method, is_fixed, memo, spent_at
+      payment_method, is_fixed, memo,
+      year, month, day, created_at
     )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
   `;
 
   const values = [
@@ -29,71 +34,59 @@ const insertTempExpense = async (expense) => {
     payment_method,
     is_fixed,
     memo,
-    spent_at
+    year,
+    month,
+    day
   ];
 
   await db.execute(sql, values);
 };
-const getTempExpensesByUser = async (userId) => {
-  const query = `SELECT * FROM expenses_temp WHERE user_id = ?`;
-  const [rows] = await db.execute(query, [userId]);
-  return rows;
-};
-const saveConfirmedExpenses = async (expenses) => {
+
+// ✅ 지출 항목 조회 (일별)
+const getExpensesByDate = async (userId, year, month, day) => {
   const query = `
-    INSERT INTO expenses (user_id, category, title, amount, payment_method, is_fixed, memo, spent_at, created_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())
-  `;
-
-  const conn = await db.getConnection();
-  try {
-    await conn.beginTransaction();
-
-    for (const expense of expenses) {
-      await conn.execute(query, [
-        expense.user_id,
-        expense.category,
-        expense.title,
-        expense.amount,
-        expense.payment_method,
-        expense.is_fixed,
-        expense.memo,
-        expense.spent_at
-      ]);
-    }
-
-    await conn.commit();
-  } catch (err) {
-    await conn.rollback();
-    throw err;
-  } finally {
-    conn.release();
-  }
-};
-
-const deleteTempExpensesByUser = async (userId) => {
-  const query = `DELETE FROM expenses_temp WHERE user_id = ?`;
-  await db.execute(query, [userId]);
-};
-
-const getConfirmedExpenses = async (userId, year, month, day) => {
-  const query = `
-    SELECT id, category, title, amount, payment_method, is_fixed, memo, spent_at
+    SELECT id, category, title, amount, payment_method, is_fixed, memo, year, month, day
     FROM expenses
     WHERE user_id = ?
-      AND YEAR(spent_at) = ?
-      AND MONTH(spent_at) = ?
-      AND DAY(spent_at) = ?
-    ORDER BY spent_at ASC
+      AND year = ?
+      AND month = ?
+      AND day = ?
+    ORDER BY created_at ASC
   `;
-
   const [rows] = await db.execute(query, [userId, year, month, day]);
   return rows;
 };
+
+// ✅ 지출 항목 전체 조회 (월별)
+const getMonthlyExpenses = async (userId, year, month) => {
+  const query = `
+    SELECT id, category, title, amount, payment_method, is_fixed, memo, year, month, day
+    FROM expenses
+    WHERE user_id = ?
+      AND year = ?
+      AND month = ?
+    ORDER BY day ASC
+  `;
+  const [rows] = await db.execute(query, [userId, year, month]);
+  return rows;
+};
+
+// ✅ 전체 사용자 월별 평균 지출 계산
+const getMonthlyAverageExpenses = async (year, month) => {
+  const query = `
+    SELECT day, AVG(amount) AS avg_amount
+    FROM expenses
+    WHERE year = ? AND month = ?
+    GROUP BY day
+    ORDER BY day ASC
+  `;
+  const [rows] = await db.execute(query, [year, month]);
+  return rows;
+};
+
 module.exports = {
-  insertTempExpense,
-  getTempExpensesByUser,
-  saveConfirmedExpenses,
-  deleteTempExpensesByUser,
-  getConfirmedExpenses
+  insertExpense,
+  getExpensesByDate,
+  getMonthlyExpenses,
+  getMonthlyAverageExpenses
 };

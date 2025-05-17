@@ -11,20 +11,22 @@ const swaggerSpec = require('./src/config/swagger');
 
 // ✅ 라우터 불러오기
 const expenseRoutes = require('./src/routes/expenseRoute');
-const userRoutes = require('./src/routes/userRoute'); // 사용자 관련 API 라우터
-const postRoutes = require('./src/routes/postRoute'); //커뮤티니 게시물 관련 라우터
+const userRoutes = require('./src/routes/userRoute');
+const postRoutes = require('./src/routes/postRoute');
+const compareRoutes = require('./src/routes/compareRoute'); // ✅ 추가됨
 
 // ✅ 미들웨어 등록
 app.use(cors());
-app.use(express.json()); // JSON 요청 본문 파싱
+app.use(express.json());
 
 // ✅ Swagger UI 연결
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // ✅ API 라우터 등록
-app.use('/api/expenses', expenseRoutes); // 지출 관련
-app.use('/api/users', userRoutes);       // 유저 관련 (회원가입, 로그인, 내 정보 등)
-app.use('/api/posts', postRoutes); //커뮤 게시물 관련
+app.use('/api/expenses', expenseRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/posts', postRoutes);
+app.use('/api/compare', compareRoutes); // ✅ 추가됨
 
 // ✅ 기본 라우트
 app.get('/', (req, res) => {
