@@ -1,6 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const aiRoutes = require('./src/routes/aiRoute');
+
 dotenv.config();
 
 const app = express();
@@ -27,7 +29,7 @@ app.use('/api/expenses', expenseRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/compare', compareRoutes); // ✅ 추가됨
-
+app.use('/api/ai', aiRoutes); // ✅ /api/ai/chat, /api/ai/predict 사용 가능
 // ✅ 기본 라우트
 app.get('/', (req, res) => {
   res.send('💸 지출 관리 서버가 실행 중입니다.');
